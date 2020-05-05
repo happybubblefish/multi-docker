@@ -1,0 +1,27 @@
+language: generic
+sudo: required
+services:
+  - dockder
+
+before_install:
+  - docker build -t test_image -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true test_image npm test
+
+after_success:
+  - docker build -t lin/multi-client ./client
+  - docker build -t lin/multi-nginx ./nginx
+  - docker build -t lin/multi-server ./server
+  - docker build -t lin/multi-worker .worker
+
+#Login to docker with username and password
+#docker login
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+#Take those images and push them to the docker hub
+  - docker push lin/multi-client
+  - docker push lin/multi-nginx
+  - docker push lin/multi-server
+  - docker push lin/multi-worker
+
